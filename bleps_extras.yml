@@ -1,0 +1,37 @@
+#include colors.yml
+#include bleps_widgets.yml
+
+Form: !Form
+    title: "Beamline FIFO"
+    background: $757687
+    
+    
+Extra_Region: !Template:ExtraRegion
+    - !HFlow
+        padding: 10
+        children:
+            - !VFlow
+                padding: 10
+                children:
+                    - !Apply:PumpRegion
+                        num_Pumps: 22
+            - !VFlow
+                padding: 10
+                children:
+                    - !Apply:GaugeRegion
+                        num_Gauges: 11
+                            
+                    - !Apply:VacuumRegion
+                        num_VS1: 10
+                        start_VS1: 1
+                        
+                        num_VS2: 10
+                        start_VS2: 11
+
+Content: !Apply:ExtraRegion
+    palette-main: *header_blue
+    palette-background: *grey_lighter
+    palette-secondary: $7B0021
+    palette-tertiary: $CFA616
+
+    

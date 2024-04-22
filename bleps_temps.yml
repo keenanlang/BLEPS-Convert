@@ -1,0 +1,12 @@
+#include colors.yml
+#include bleps_widgets.yml
+
+Form: !Form
+    title: "Beamline Temps"
+    background: $757687
+    
+Content: !Apply:TempRegion
+    palette-main: *header_blue
+    palette-background: *grey_lighter
+    palette-secondary: $7B0021
+    palette-tertiary: $CFA616

@@ -1,315 +1,182 @@
 #! /usr/bin/env python3
 
-import argparse
+import os
+import json
 import xlrd
+import pathlib
+import argparse
+import subprocess
 
-parser = argparse.ArgumentParser(prog="BLEPS-convert", usage='%(prog)s [OPTIONS] TABLE')
+script_dir = str(pathlib.Path(__file__).resolve().parent.resolve())
+curr_dir = str(pathlib.Path(os.getcwd()).resolve())
 
-parser.add_argument("table", metavar="TABLE", type=str, help="BLEPS Transfer Table")
+parser = argparse.ArgumentParser(prog="BLEPS-convert", usage='%(prog)s [OPTIONS] inpath [outpath]')
+
+parser.add_argument("inpath", metavar="FILE", type=str, help="BLEPS Excel file")
+parser.add_argument("outpath", nargs="?", metavar="FOLDER", type=str, help="Folder to hold output files")
+
+parser.add_argument("-t", "-w", "--to", "--write",
+	metavar="FORMAT",
+	dest="out_format",
+	action="store",
+	help="Type of conversion, based on output file. Either xls->substutions or xls->ui/css. Recognized values are ['substitutions', 'subs', 'templates', 'ui', 'qt', 'css', 'bob']",
+	type=str,
+	default="substitutions",
+	choices=['substitutions', 'subs', 'templates', 'ui', 'qt', 'css', 'bob'])
 
 
-def convert_fifo(worksheet):
-	with open("bleps_fifo.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_ai.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tPREC\t\tEGU\t\tHIHI\t\tHIGH\t\tLOW\t\tLOLO\t\tHHSV\t\tHSV\t\tLSV\t\tLLSV\t\tDESC}\n")
+def ai_header(output):
+	output.write('file "$(TOP)/db/bleps_ai.db"\n')
+	output.write("{\n")
+	output.write("pattern\n")
+	output.write("{N\t\t\tTAG\t\tSCAN\t\tPREC\t\tEGU\t\tHIHI\t\tHIGH\t\tLOW\t\tLOLO\t\tHHSV\t\tHSV\t\tLSV\t\tLLSV\t\tDESC}\n")
+	
+def bi_header(output):
+	output.write('file "$(TOP)/db/bleps_bi.db"\n')
+	output.write("{\n")
+	output.write("pattern\n")
+	output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
+	
+def bo_header(output):
+	output.write('file "$(TOP)/db/bleps_bo.db"\n')
+	output.write("{\n")
+	output.write("pattern\n")
+	output.write("{N\t\t\tTAG\t\tHIGH\t\tZNAM\t\tONAM\t\tDESC}\n")
+
+	
+def parse_row(row):
+	used = row[0].value
+	typ  = row[1].value
+	name = row[2].value
+	pv   = row[3].value
+	tag  = row[4].value
+	desc = row[5].value
+	
+	pv = pv[pv.rfind(":") + 1:]
+	desc = desc.lstrip("0123456789 ")
+	
+	return { 
+		"used" : used, 
+		"type" : typ, 
+		"name" : name, 
+		"pv"   : pv, 
+		"tag"  : tag,
+		"desc" : desc
+	}
+	
+def write_basic(output, worksheet, title, header, format):
+	output.write("# BLEPS {title}\n\n".format(title=title))
+	header(output)
+	
+	for index in range(worksheet.nrows):
+		info = parse_row(worksheet.row(index))
+			
+		if info["used"] and info["used"] == "X":
+			output.write(format.format(name=info["pv"], tag=info["tag"], desc=info["desc"]))
+			
+	output.write("}\n\n\n")
+	
 		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
+def EPICS_to_substitution(output, worksheet):
+	output.write("# BLEPS EPICS Inputs\n\n")
+	bo_header(output)
+	
+	for index in range(worksheet.nrows):
+		info = parse_row(worksheet.row(index))
 			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0"\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
+		onam = "CLOSE"
+		high = "0.5"
+		
+		if "open" in info["pv"].lower():
+			onam = "OPEN"
+		
+		if "reset" in info["pv"].lower():
+			high = "1.0"
+		
+		if info["used"] and info["used"] == "X":
+			output.write('{{"BLEPS:{name}",\t"{tag}",\t"{high}",\t"",\t"{onam}",\t"{desc}"}}\n'.format(name=info["pv"], high=high, onam=onam, tag=info["tag"], desc=info["desc"]))
 				
-		output.write("}\n")
-
-
-def convert_faults(worksheet):
-	with open("bleps_faults.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bi.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"0.5",\t""\t"Present",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")
-
-def convert_trips(worksheet):
-	with open("bleps_trips.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bi.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO FAULT"\t"TRIP",\t"NO ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")
-
-		
-def convert_warnings(worksheet):
-	with open("bleps_warnings.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bi.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO FAULT"\t"TRIP",\t"NO ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")		
-
-		
-def convert_flows(worksheet):
-	with open("bleps_flows.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_ai.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tPREC\t\tEGU\t\tHIHI\t\tHIGH\t\tLOW\t\tLOLO\t\tHHSV\t\tHSV\t\tLSV\t\tLLSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1"\t"gpm",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")
-
-def convert_temps(worksheet):
-	with open("bleps_temps.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_ai.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tPREC\t\tEGU\t\tHIHI\t\tHIGH\t\tLOW\t\tLOLO\t\tHHSV\t\tHSV\t\tLSV\t\tLLSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1"\t"degC",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")
-
-		
-def convert_inputs(worksheet):
-	with open("bleps_inputs.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bi.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD"\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")
-		
-		
-def convert_outputs(worksheet):
-	with open("bleps_outputs.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bi.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD"\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
-				
-		output.write("}\n")
-
-		
-def convert_EPICS(worksheet):
-	with open("bleps_EPICS.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bo.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tHIGH\t\tZNAM\t\tONAM\t\tDESC}\n")
-		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			onam = "CLOSE"
-			high = "0.5"
-			
-			if "open" in pv.lower():
-				onam = "OPEN"
-			
-			if "reset" in pv.lower():
-				high = "1.0"
-			
-			if used and used == "X":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"{high}"\t"",\t"{onam}",\t"{desc}"}}\n'.format(name=pv, high=high, onam=onam, tag=tag, desc=desc))
-				
-		output.write("}\n")
+	output.write("}\n\n\n")
 		
 
-def convert_display(worksheet):
-	with open("bleps_display.substitutions", "w") as output:
-		output.write('file "$(TOP)/db/bleps_bi.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tZNAM\t\tONAM\t\tZSV\t\tOSV\t\tDESC}\n")
+def display_to_substitution(output, worksheet):
+	output.write("# BLEPS Display (Bools)")
+	bi_header(output)
+			
+	for index in range(worksheet.nrows):
+		info = parse_row(worksheet.row(index))
 		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X" and typ == "Bool":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD"\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
+		if info["used"] and info["used"] == "X" and info["type"] == "Bool":
+			output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=info["pv"], tag=info["tag"], desc=info["desc"]))
 				
-		output.write("}\n\n\n")
-		output.write('file "$(TOP)/db/bleps_ai.db"\n')
-		output.write("{\n")
-		output.write("pattern\n")
-		output.write("{N\t\t\tTAG\t\tSCAN\t\tPREC\t\tEGU\t\tHIHI\t\tHIGH\t\tLOW\t\tLOLO\t\tHHSV\t\tHSV\t\tLSV\t\tLLSV\t\tDESC}\n")
+	output.write("}\n\n\n")
+	output.write("BLEPS Display (Ints)")
+	ai_header(output)
+	
+	for index in range(worksheet.nrows):
+		info = parse_row(worksheet.row(index))
 		
-		for index in range(worksheet.nrows):
-			row = worksheet.row(index)
-			
-			used = row[0].value
-			typ  = row[1].value
-			name = row[2].value
-			pv   = row[3].value
-			tag  = row[4].value
-			desc = row[5].value
-			
-			pv = pv[pv.rfind(":") + 1:]
-			desc = desc.lstrip("0123456789 ")
-			
-			if used and used == "X" and typ == "Int":
-				output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0"\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n'.format(name=pv, tag=tag, desc=desc))
+		if info["used"] and info["used"] == "X" and info["type"] == "Int":
+			output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0",\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n'.format(name=info["pv"], tag=info["tag"], desc=info["desc"]))
 				
-		output.write("}\n")
-		
+	output.write("}\n\n\n")
 		
 
-sheet_functions = {
-	"FIFOs"        : convert_fifo,
-	"Faults"       : convert_faults,
-	"Trips"        : convert_trips,
-	"Warnings"     : convert_warnings,
+def faults_to_yaml(worksheet):
+	output = {
+		"Flows" : 0,
+		"Temps" : 0,
+		"GVS"   : 0,
+		"Close" : []
+	}
+	
+	for index in range(worksheet.nrows):
+		info = parse_row(worksheet.row(index))
+		
+		if info["used"] and info["used"] == "X":
+			if info["desc"][0:4] == "Flow":
+				output["Flows"] += 1
+			
+			if info["desc"][0:4] == "Temp":
+				output["Temps"] += 1
+				
+			if info["desc"][0:2] == "GV" and "Faulted" in info["desc"]:
+				output["GVS"] += 1
+				
+			if info["desc"][0:2] != "GV" and "Fail to Close" in info["desc"]:
+				output["Close"].append(info["tag"].split('.')[0])
+				
+	
+	print(yaml.dump(output))
+	
+		
+
+substitution_functions = {
+	"FIFOs"        : (lambda f, s: write_basic(f, s, title="FIFO",     header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0",\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
+	"Faults"       : (lambda f, s: write_basic(f, s, title="Faults",   header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"0.5",\t"",\t"Present",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Trips"        : (lambda f, s: write_basic(f, s, title="Trips",    header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO FAULT",\t"TRIP",\t"NO ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Warnings"     : (lambda f, s: write_basic(f, s, title="Warnings", header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO FAULT",\t"TRIP",\t"NO ALARM",\t"MAJOR",\t"{desc}"}}\n')),
 	"Info"         : None,
-	"Flows"        : convert_flows,
-	"Temps"        : convert_temps,
-	"Inputs"       : convert_inputs,
-	"Outputs"      : convert_outputs,
-	"Sheet1"       : None,
-	"Display"      : convert_display,
-	"EPICS_Inputs" : convert_EPICS,
+	"Flows"        : (lambda f, s: write_basic(f, s, title="Flows",    header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1",\t"gpm",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
+	"Temps"        : (lambda f, s: write_basic(f, s, title="Temps",    header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1",\t"degC",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
+	"Inputs"       : (lambda f, s: write_basic(f, s, title="Inputs",   header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Outputs"      : (lambda f, s: write_basic(f, s, title="Outputs",  header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Display"      : display_to_substitution,
+	"EPICS_Inputs" : EPICS_to_substitution,
+}
+
+ui_functions = {
+	"FIFOs"        : None,
+	"Faults"       : faults_to_yaml,
+	"Trips"        : None,
+	"Warnings"     : None,
+	"Info"         : None,
+	"Flows"        : None,
+	"Temps"        : None, 
+	"Inputs"       : None,
+	"Outputs"      : None, 
+	"Display"      : None, 
+	"EPICS_Inputs" : None
 }
 
 
@@ -317,8 +184,98 @@ sheet_functions = {
 if __name__ == "__main__":
 	args = parser.parse_args()
 	
-	data = xlrd.open_workbook(args.table)
+	if not args.outpath:
+		args.outpath = curr_dir
+
+	data = xlrd.open_workbook(args.inpath)
+		
+	if args.out_format == "css":
+		args.out_format = "bob"
+		
+	if args.out_format == "qt":
+		args.out_format = "ui"
 	
-	for sheet in data.sheets():
-		if sheet.name in sheet_functions and sheet_functions[sheet.name]:
-			sheet_functions[sheet.name](sheet)
+	if args.out_format in ["substitutions", "subs", "templates"]:
+		with open(args.outpath + "/bleps.substitutions", "w") as output:
+			for sheet in data.sheets():
+				if sheet.name in substitution_functions and substitution_functions[sheet.name]:
+					substitution_functions[sheet.name](output, sheet)
+
+	elif args.out_format in ["qt", "ui", "css", "bob"]:
+		shutter_yaml = {"shutters" : [] }
+		GV_yaml   = {"num_GV"    : 0, "aspect" : 1.6}
+		Temp_yaml = {"num_Temps" : 0, "aspect" : 0.37}
+		Flow_yaml = {"num_Flows" : 0, "aspect" : 0.45}
+		Extras_yaml = {"num_Gauges" : 0, "num_Pumps" : 0, "num_VS1" : 0, "start_VS1" : 0, "num_VS2" : 0, "start_VS2": 0 }
+		
+		for index in range(data.sheet_by_name("Outputs").nrows):
+			info = parse_row(data.sheet_by_name("Outputs").row(index))
+			
+			if info["used"] and info["used"] == "X":
+				if "Permit" in info["name"]:
+					abbr = info["name"][0:3]
+					
+					cutoff = max(info["desc"].rfind("Valve"), info["desc"].rfind("Shutter"))
+					
+					label = info["desc"][0: cutoff].strip()
+					
+					shutter_yaml["shutters"].append({ "label" : label, "abbreviation" : abbr})
+					
+				if "GV" in info["name"]:
+					GV_yaml["num_GV"] += 1
+					
+		for index in range(data.sheet_by_name("Temps").nrows):
+			info = parse_row(data.sheet_by_name("Temps").row(index))
+			
+			if info["used"] and info["used"] == "X":
+				if "Current" in info["name"]:
+					Temp_yaml["num_Temps"] += 1
+					
+		for index in range(data.sheet_by_name("Flows").nrows):
+			info = parse_row(data.sheet_by_name("Flows").row(index))
+			
+			if info["used"] and info["used"] == "X":
+				if "Current" in info["name"]:
+					Flow_yaml["num_Flows"] += 1
+					
+		for index in range(data.sheet_by_name("Inputs").nrows):
+			info = parse_row(data.sheet_by_name("Inputs").row(index))
+			
+			if info["used"] and info["used"] == "X":
+				if "IP" in info["name"]:
+					Extras_yaml["num_Pumps"] += 1
+					
+				if "IG" in info["name"]:
+					Extras_yaml["num_Gauges"] += 1
+					
+		for index in range(data.sheet_by_name("Trips").nrows):
+			info = parse_row(data.sheet_by_name("Trips").row(index))
+			
+			if info["used"] and info["used"] == "X":
+				if "VS" in info["name"]:
+					Extras_yaml["num_VS1"] += 1
+					
+		second_col = Extras_yaml["num_VS1"] / 2
+		
+		Extras_yaml["num_VS1"] -= second_col
+		Extras_yaml["start_VS1"] = 1
+		Extras_yaml["num_VS2"] = second_col
+		Extras_yaml["start_VS2"] = Extras_yaml["num_VS1"] + 1
+		
+		print("Generating Shutters Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} shutters.yml".format(format=args.out_format, yaml=json.dumps(shutter_yaml), path=args.outpath + "/shutters"), shell=True)
+
+		print("Generating Gate Valve Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_valves.yml".format(format=args.out_format, yaml=json.dumps(GV_yaml), path=args.outpath + "/bleps_valves"), shell=True)
+		
+		print("Generating Temps Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_temps.yml".format(format=args.out_format, yaml=json.dumps(Temp_yaml), path=args.outpath + "/bleps_temps"), shell=True)
+		
+		print("Generating Flows Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_flows.yml".format(format=args.out_format, yaml=json.dumps(Flow_yaml), path=args.outpath + "/bleps_temps"), shell=True)
+		
+		print("Generating FIFO Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{{}}' --output {path}.{format} bleps_fifo.yml".format(format=args.out_format, path=args.outpath + "/bleps_fifo"), shell=True)
+		
+		print("Generating Extras Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_extras.yml".format(format=args.out_format, yaml=json.dumps(Extras_yaml), path=args.outpath + "/bleps_extras"), shell=True)

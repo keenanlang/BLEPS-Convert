@@ -1,0 +1,23 @@
+#include colors.yml
+#include bleps_widgets.yml
+
+Form: !Form
+    title: "Beamline FIFO"
+    background: $757687
+    
+    
+FIFO_Region: !Template:FIFORegion
+    - !HFlow
+        padding: 10
+        children:
+            - !Apply:FIFO { label: "Trip",    type: "TRIP",    has-reset: True }
+            - !Apply:FIFO { label: "Fault",   type: "FAULT",   has-reset: True }
+            - !Apply:FIFO { label: "Warning", type: "WARNING", has-reset: False }
+
+Content: !Apply:FIFORegion
+    palette-main: *header_blue
+    palette-background: *grey_lighter
+    palette-secondary: $7B0021
+    palette-tertiary: $CFA616
+
+    
