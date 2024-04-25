@@ -16,7 +16,6 @@ Content: !Template:Everything
                     - !Apply:ShutterRegion
                     
                     - !Apply:GVRegion
-                        num_GV: 15
                         aspect: 1.6
                              
             - !VFlow
@@ -36,11 +35,6 @@ Content: !Template:Everything
                     - !Apply:GaugeRegion
                             
                     - !Apply:VacuumRegion
-                        num_VS1: 10
-                        start_VS1: 1
-                        
-                        num_VS2: 10
-                        start_VS2: 11
             
             - !VFlow
                 padding: 10
