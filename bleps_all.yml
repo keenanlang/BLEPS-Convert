@@ -1,0 +1,59 @@
+#include colors.yml
+#include bleps_widgets.yml
+
+Form: !Form
+    title: "Beamline BLEPS"
+    background: $757687
+
+    
+Content: !Template:Everything
+    - !HFlow
+        padding: 15
+        children:
+            - !VFlow
+                padding: 15
+                children:
+                    - !Apply:ShutterRegion
+                    
+                    - !Apply:GVRegion
+                        num_GV: 15
+                        aspect: 1.6
+                             
+            - !VFlow
+                padding: 15
+                children:
+                    - !Apply:TempRegion
+                        aspect: 0.37
+                    
+                    - !Apply:FlowRegion
+                        aspect: 0.45
+                                
+            - !VFlow
+                padding: 10
+                children:
+                    - !Apply:PumpRegion
+                    
+                    - !Apply:GaugeRegion
+                            
+                    - !Apply:VacuumRegion
+                        num_VS1: 10
+                        start_VS1: 1
+                        
+                        num_VS2: 10
+                        start_VS2: 11
+            
+            - !VFlow
+                padding: 10
+                children:
+                    - !Apply:FIFO { label: "Trip",    type: "TRIP",    has-reset: True }
+                    - !Apply:FIFO { label: "Fault",   type: "FAULT",   has-reset: True }
+                    - !Apply:FIFO { label: "Warning", type: "WARNING", has-reset: False }
+
+                    
+Content: !Apply:Everything
+    palette-main: *header_blue
+    palette-background: *grey_lighter
+    palette-secondary: $7B0021
+    palette-tertiary: $CFA616
+
+    

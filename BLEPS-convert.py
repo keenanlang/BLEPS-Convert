@@ -45,14 +45,16 @@ def bo_header(output):
 
 	
 def parse_row(row):
+	row[3].ctype = 1
+	
 	used = row[0].value
 	typ  = row[1].value
 	name = row[2].value
-	pv   = row[3].value
+	
 	tag  = row[4].value
 	desc = row[5].value
 	
-	pv = pv[pv.rfind(":") + 1:]
+	pv = name.upper()
 	desc = desc.lstrip("0123456789 ")
 	
 	return { 
@@ -120,36 +122,7 @@ def display_to_substitution(output, worksheet):
 			output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0",\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n'.format(name=info["pv"], tag=info["tag"], desc=info["desc"]))
 				
 	output.write("}\n\n\n")
-		
-
-def faults_to_yaml(worksheet):
-	output = {
-		"Flows" : 0,
-		"Temps" : 0,
-		"GVS"   : 0,
-		"Close" : []
-	}
 	
-	for index in range(worksheet.nrows):
-		info = parse_row(worksheet.row(index))
-		
-		if info["used"] and info["used"] == "X":
-			if info["desc"][0:4] == "Flow":
-				output["Flows"] += 1
-			
-			if info["desc"][0:4] == "Temp":
-				output["Temps"] += 1
-				
-			if info["desc"][0:2] == "GV" and "Faulted" in info["desc"]:
-				output["GVS"] += 1
-				
-			if info["desc"][0:2] != "GV" and "Fail to Close" in info["desc"]:
-				output["Close"].append(info["tag"].split('.')[0])
-				
-	
-	print(yaml.dump(output))
-	
-		
 
 substitution_functions = {
 	"FIFOs"        : (lambda f, s: write_basic(f, s, title="FIFO",     header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0",\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
@@ -164,21 +137,6 @@ substitution_functions = {
 	"Display"      : display_to_substitution,
 	"EPICS_Inputs" : EPICS_to_substitution,
 }
-
-ui_functions = {
-	"FIFOs"        : None,
-	"Faults"       : faults_to_yaml,
-	"Trips"        : None,
-	"Warnings"     : None,
-	"Info"         : None,
-	"Flows"        : None,
-	"Temps"        : None, 
-	"Inputs"       : None,
-	"Outputs"      : None, 
-	"Display"      : None, 
-	"EPICS_Inputs" : None
-}
-
 
 
 if __name__ == "__main__":
@@ -262,6 +220,19 @@ if __name__ == "__main__":
 		Extras_yaml["num_VS2"] = second_col
 		Extras_yaml["start_VS2"] = Extras_yaml["num_VS1"] + 1
 		
+		
+		All_yaml = {}
+		All_yaml["shutters"] = shutter_yaml["shutters"]
+		All_yaml["num_GV"] = GV_yaml["num_GV"]
+		All_yaml["num_Temps"] = Temp_yaml["num_Temps"]
+		All_yaml["num_Flows"] = Flow_yaml["num_Flows"]
+		All_yaml["num_Gauges"] = Extras_yaml["num_Gauges"]
+		All_yaml["num_Pumps"] = Extras_yaml["num_Pumps"]
+		All_yaml["num_VS1"] = Extras_yaml["num_VS1"]
+		All_yaml["num_VS2"] = Extras_yaml["num_VS2"]
+		All_yaml["start_VS1"] = Extras_yaml["start_VS1"]
+		All_yaml["start_VS2"] = Extras_yaml["start_VS2"]
+		
 		print("Generating Shutters Screen")
 		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} shutters.yml".format(format=args.out_format, yaml=json.dumps(shutter_yaml), path=args.outpath + "/shutters"), shell=True)
 
@@ -279,3 +250,6 @@ if __name__ == "__main__":
 		
 		print("Generating Extras Screen")
 		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_extras.yml".format(format=args.out_format, yaml=json.dumps(Extras_yaml), path=args.outpath + "/bleps_extras"), shell=True)
+		
+		print("Generating Everything Screen")
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_all.yml".format(format=args.out_format, yaml=json.dumps(All_yaml), path=args.outpath + "/bleps_all"), shell=True)
