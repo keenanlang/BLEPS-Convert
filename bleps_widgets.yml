@@ -110,9 +110,10 @@ Box_Template: !Template:BoxInfo
             - !HCenter:HFlow
                 padding: 5
                 children:
-                    - !Text
+                    - !TextEntry
                         <<: *H2
-                        text: "{type} {N}"
+                        background: *white
+                        pv: "$(P)BLEPS:{pv-type}{N}_CURRENT.DESC"
                         
                     - !Group
                         geometry: 85x16
@@ -160,9 +161,10 @@ Valve_Template: !Template:Valve
             - !HCenter:HFlow
                 padding: 5
                 children:
-                    - !Text
+                    - !TextEntry
                         <<: *H2
-                        text: "GV {N}"
+                        background: *white
+                        pv: "$(P)BLEPS:GV{N}_TYPE.DESC"
                     
                     - !Group
                         geometry: 50x16
