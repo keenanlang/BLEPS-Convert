@@ -213,7 +213,7 @@ if __name__ == "__main__":
 				if "VS" in info["name"]:
 					Extras_yaml["num_VS1"] += 1
 					
-		second_col = Extras_yaml["num_VS1"] / 2
+		second_col = int(Extras_yaml["num_VS1"] / 2)
 		
 		Extras_yaml["num_VS1"] -= second_col
 		Extras_yaml["start_VS1"] = 1
