@@ -91,7 +91,7 @@ Units_Template: !Template:FeedbackWithUnits
         padding: 10
         children:
             - !TextMonitor
-                geometry: 50x14
+                geometry: 65x14
                 font: "-Monospace -Regular -{fontsize}"
                 pv: "{pv}"
                 
@@ -116,7 +116,7 @@ Box_Template: !Template:BoxInfo
                         pv: "$(P)BLEPS:{pv-type}{N}_CURRENT.DESC"
                         
                     - !Group
-                        geometry: 85x16
+                        geometry: 75x16
                         children:
                             - !AStretch:Text
                                 font: -Liberation Sans -regular -9
