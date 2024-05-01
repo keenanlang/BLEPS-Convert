@@ -428,6 +428,7 @@ Flow_Region: !Template:FlowRegion
                         
             - !Apply:BLEPS_Section_Header { label: "Flows" }
 
+            
 Pump_Region: !Template:PumpRegion
     - !Group
         <<: *BLEPS_Section
@@ -437,18 +438,18 @@ Pump_Region: !Template:PumpRegion
         children:
             - !HCenter:VRepeat
                 geometry: 0x30 x 0x0
-                repeat-over: "{num_Pumps}"
-                start-at: 1
+                repeat-over: "Pumps"
                 padding: 3
                 
                 children:
                     - !HFlow
                         padding: 10
                         children:
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IP{N}_STATUS", label: "Pump {N} Status" }
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IP{N}_WARNING", label: "Pump {N} Warn" }
+                            - !Apply:LEDFault { pv: "$(P)BLEPS:IP{ID}_STATUS",  label: "Pump {ID} Status" }
+                            - !Apply:LEDFault { pv: "$(P)BLEPS:IP{ID}_WARNING", label: "Pump {ID} Warn" }
                     
             - !Apply:BLEPS_Section_Header { label: "Ion Pumps" }
+            
             
 Gauge_Region: !Template:GaugeRegion
     - !Group
@@ -459,18 +460,18 @@ Gauge_Region: !Template:GaugeRegion
         children:
             - !HCenter:VRepeat
                 geometry: 0x30 x 0x0
-                repeat-over: "{num_Gauges}"
-                start-at: 1
+                repeat-over: "Gauges"
                 padding: 3
                 
                 children:
                     - !HFlow
                         padding: 10
                         children:
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IG{N}_STATUS", label: "Gauge {N} Status" }
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IG{N}_WARNING", label: "Gauge {N} Warn" }
+                            - !Apply:LEDFault { pv: "$(P)BLEPS:IG{ID}_STATUS",  label: "Gauge {ID} Status" }
+                            - !Apply:LEDFault { pv: "$(P)BLEPS:IG{ID}_WARNING", label: "Gauge {ID} Warn" }
                     
             - !Apply:BLEPS_Section_Header { label: "Ion Gauges" }
+            
             
 Vacuum_Region: !Template:VacuumRegion        
     - !Group
@@ -484,86 +485,17 @@ Vacuum_Region: !Template:VacuumRegion
                 
                 children:
                     - !VRepeat
-                        repeat-over: "{num_VS1}"
-                        start-at: "{start_VS1}"
+                        repeat-over: "VS1"
                         padding: 3
                         
                         children:
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:VS{N}_TRIP", label: "Section {N} Trip"}
+                            - !Apply:LEDFault { pv: "$(P)BLEPS:VS{ID}_TRIP", label: "Section {ID} Trip"}
                             
                     - !VRepeat
-                        repeat-over: "{num_VS2}"
-                        start-at: "{start_VS2}"
+                        repeat-over: "VS2"
                         padding: 3
                         
                         children:
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:VS{N}_TRIP", label: "Section {N} Trip"}
+                            - !Apply:LEDFault { pv: "$(P)BLEPS:VS{ID}_TRIP", label: "Section {ID} Trip"}
                     
             - !Apply:BLEPS_Section_Header { label: "Vac. Sections" }
-
-            
-Content: !Template:Everything
-    - !HFlow
-        padding: 15
-        children:
-            - !VFlow
-                padding: 15
-                children:
-                    - !Apply:ShutterRegion
-                        shutters:
-                            - { label: "Beamline Iso", abbreviation: "BIV" }
-                            - { label: "Front End",  abbreviation: "FES" }
-                            - { label: "Station D", abbreviation: "SDS" }
-                            - { label: "Station E", abbreviation: "SES" }
-                            - { label: "Station I", abbreviation:"SIS" }
-                    
-                    - !Apply:GVRegion
-                        num_GV: 15
-                        aspect: 1.6
-                             
-            - !VFlow
-                padding: 15
-                children:
-                    - !Apply:TempRegion
-                        num_Temps: 21
-                        aspect: 0.37
-                    
-                    - !Apply:FlowRegion
-                        num_Flows: 14
-                        aspect: 0.45
-                                
-            - !VFlow
-                padding: 10
-                children:
-                    - !Apply:PumpRegion
-                        num_Pumps: 22
-                    
-                    - !Apply:GaugeRegion
-                        num_Gauges: 11
-                            
-                    - !Apply:VacuumRegion
-                        num_VS1: 10
-                        start_VS1: 1
-                        
-                        num_VS2: 10
-                        start_VS2: 11
-            
-            - !VFlow
-                padding: 10
-                children:
-                    - !Apply:FIFO { label: "Trip",    type: "TRIP",    has-reset: True }
-                    - !Apply:FIFO { label: "Fault",   type: "FAULT",   has-reset: True }
-                    - !Apply:FIFO { label: "Warning", type: "WARNING", has-reset: False }
-                    
-                    
-                    
-#Form: !Form
-#    background: $757687
-                    
-#Test: !Apply:Everything
-#    palette-main: *header_blue
-#    palette-background: *grey_lighter
-#    palette-secondary: $7B0021
-#    palette-tertiary: $CFA616
-                       
-#Header: !Apply:ScreenHeader { title: "$(P) BLEPS Faults" }

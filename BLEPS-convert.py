@@ -164,7 +164,7 @@ if __name__ == "__main__":
 		GV_yaml   = {"num_GV"    : 0, "aspect" : 1.6}
 		Temp_yaml = {"num_Temps" : 0, "aspect" : 0.37}
 		Flow_yaml = {"num_Flows" : 0, "aspect" : 0.45}
-		Extras_yaml = {"num_Gauges" : 0, "num_Pumps" : 0, "num_VS1" : 0, "start_VS1" : 0, "num_VS2" : 0, "start_VS2": 0 }
+		Extras_yaml = {"Gauges" : [], "Pumps" : [], "VS1" : [], "VS2" : []}
 		
 		for index in range(data.sheet_by_name("Outputs").nrows):
 			info = parse_row(data.sheet_by_name("Outputs").row(index))
@@ -201,24 +201,22 @@ if __name__ == "__main__":
 			
 			if info["used"] and info["used"] == "X":
 				if "IP" in info["name"]:
-					Extras_yaml["num_Pumps"] += 1
+					Extras_yaml["Pumps"].append({"ID" : info["name"].strip("IPStatus_")})
 					
 				if "IG" in info["name"]:
-					Extras_yaml["num_Gauges"] += 1
+					Extras_yaml["Gauges"].append({"ID" : info["name"].strip("IGStatus_")})
 					
 		for index in range(data.sheet_by_name("Trips").nrows):
 			info = parse_row(data.sheet_by_name("Trips").row(index))
 			
 			if info["used"] and info["used"] == "X":
 				if "VS" in info["name"]:
-					Extras_yaml["num_VS1"] += 1
+					Extras_yaml["VS1"].append({"ID" : info["name"].strip("VSTrip_")})
 					
-		second_col = int(Extras_yaml["num_VS1"] / 2)
+		second_col = int(len(Extras_yaml["VS1"]) / 2)
 		
-		Extras_yaml["num_VS1"] -= second_col
-		Extras_yaml["start_VS1"] = 1
-		Extras_yaml["num_VS2"] = second_col
-		Extras_yaml["start_VS2"] = Extras_yaml["num_VS1"] + 1
+		Extras_yaml["VS2"] = Extras_yaml["VS1"][second_col:]
+		Extras_yaml["VS1"] = Extras_yaml["VS1"][0:second_col]
 		
 		
 		All_yaml = {}
@@ -226,12 +224,11 @@ if __name__ == "__main__":
 		All_yaml["num_GV"] = GV_yaml["num_GV"]
 		All_yaml["num_Temps"] = Temp_yaml["num_Temps"]
 		All_yaml["num_Flows"] = Flow_yaml["num_Flows"]
-		All_yaml["num_Gauges"] = Extras_yaml["num_Gauges"]
-		All_yaml["num_Pumps"] = Extras_yaml["num_Pumps"]
-		All_yaml["num_VS1"] = Extras_yaml["num_VS1"]
-		All_yaml["num_VS2"] = Extras_yaml["num_VS2"]
-		All_yaml["start_VS1"] = Extras_yaml["start_VS1"]
-		All_yaml["start_VS2"] = Extras_yaml["start_VS2"]
+		All_yaml["Gauges"] = Extras_yaml["Gauges"]
+		All_yaml["Pumps"] = Extras_yaml["Pumps"]
+		All_yaml["VS1"] = Extras_yaml["VS1"]
+		All_yaml["VS2"] = Extras_yaml["VS2"]
+		
 		
 		print("Generating Shutters Screen")
 		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} shutters.yml".format(format=args.out_format, yaml=json.dumps(shutter_yaml), path=args.outpath + "/shutters"), shell=True)
