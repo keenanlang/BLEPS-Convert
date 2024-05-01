@@ -36,7 +36,7 @@ H1: &H1
     font: -Liberation Sans -Regular -12
 
 H2: &H2
-    geometry: 80x16
+    geometry: 70x18
     alignment: Center
     font: -Liberation Mono -Bold -11
 
@@ -45,7 +45,7 @@ Repeat_Item: &Repeat_Item
     geometry: 145x0
     border-color: "{palette-secondary}"
     border-width: 2
-    margins: 0x5x0x5
+    margins: 5x5x5x5
 
 BLEPS_Section: &BLEPS_Section
     border-width: 3
@@ -91,7 +91,7 @@ Units_Template: !Template:FeedbackWithUnits
         padding: 10
         children:
             - !TextMonitor
-                geometry: 65x14
+                geometry: 55x14
                 font: "-Monospace -Regular -{fontsize}"
                 pv: "{pv}"
                 
@@ -107,16 +107,24 @@ Box_Template: !Template:BoxInfo
         padding: 3
         
         children:
+            - !HStretch:TextEntry
+                <<: *H2
+                background: *white
+                pv: "$(P)BLEPS:{pv-type}{N}_CURRENT.DESC"
+                
+            - !Spacer
+            
             - !HCenter:HFlow
                 padding: 5
                 children:
-                    - !TextEntry
-                        <<: *H2
-                        background: *white
-                        pv: "$(P)BLEPS:{pv-type}{N}_CURRENT.DESC"
+                    - !Text
+                        geometry: 70x12
+                        alignment: Center
+                        font: -Liberation Sans -bold -9
+                        text: "{pv-type} {N}"
                         
                     - !Group
-                        geometry: 75x16
+                        geometry: 75x12
                         children:
                             - !AStretch:Text
                                 font: -Liberation Sans -regular -9
@@ -158,29 +166,35 @@ Valve_Template: !Template:Valve
         padding: 8
     
         children:
+            - !HStretch:TextEntry
+                <<: *H2
+                background: *white
+                pv: "$(P)BLEPS:GV{N}_TYPE.DESC"
+                
             - !HCenter:HFlow
                 padding: 5
                 children:
-                    - !TextEntry
-                        <<: *H2
-                        background: *white
-                        pv: "$(P)BLEPS:GV{N}_TYPE.DESC"
+                    - !Text
+                        geometry: 70x12
+                        alignment: Center
+                        font: -Liberation Sans -bold -9
+                        text: "GV {N}"
                     
                     - !Group
-                        geometry: 50x16
+                        geometry: 50x12
                         children:
                             - !AStretch:Text
                                 foreground: *alarm_green
                                 alignment: Center
                                 text: "Open"
-                                font: -Liberation Sans -regular -10
+                                font: -Liberation Sans -regular -9
                                 visibility: "$(P)BLEPS:GV{N}_OPEN_LS"
                             
                             - !AStretch:Text
                                 foreground: *alarm_red
                                 alignment: Center
                                 text: "Closed"
-                                font: -Liberation Sans -regular -10
+                                font: -Liberation Sans -regular -9
                                 visibility: "$(P)BLEPS:GV{N}_CLOSED_LS"
             
             - !HCenter:VFlow

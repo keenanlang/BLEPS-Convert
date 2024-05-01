@@ -17,15 +17,25 @@ Content: !Template:Everything
                     
                     - !Apply:GVRegion
                         aspect: 1.6
-                             
-            - !VFlow
-                padding: 15
+                        
+            - !VStretch:Group
                 children:
-                    - !Apply:TempRegion
-                        aspect: 0.37
-                    
-                    - !Apply:FlowRegion
-                        aspect: 0.45
+                    - !HFlow
+                        padding: 15
+                        children:
+                            - !Apply:TempRegion
+                                aspect: 0.37
+                            
+                            - !Apply:FlowRegion
+                                aspect: 0.45
+                       
+                    - !VAnchor
+                        - !HCenter:HFlow
+                            padding: 10
+                            children:
+                                - !Apply:FIFO { label: "Trip",    type: "TRIP",    has-reset: True }
+                                - !Apply:FIFO { label: "Fault",   type: "FAULT",   has-reset: True }
+                                - !Apply:FIFO { label: "Warning", type: "WARNING", has-reset: False }
                                 
             - !VFlow
                 padding: 10
@@ -35,13 +45,6 @@ Content: !Template:Everything
                     - !Apply:GaugeRegion
                             
                     - !Apply:VacuumRegion
-            
-            - !VFlow
-                padding: 10
-                children:
-                    - !Apply:FIFO { label: "Trip",    type: "TRIP",    has-reset: True }
-                    - !Apply:FIFO { label: "Fault",   type: "FAULT",   has-reset: True }
-                    - !Apply:FIFO { label: "Warning", type: "WARNING", has-reset: False }
 
                     
 Content: !Apply:Everything
