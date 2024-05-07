@@ -12,8 +12,8 @@ curr_dir = str(pathlib.Path(os.getcwd()).resolve())
 
 parser = argparse.ArgumentParser(prog="BLEPS-convert", usage='%(prog)s [OPTIONS] inpath [outpath]')
 
-parser.add_argument("inpath", metavar="FILE", type=str, help="BLEPS Excel file")
-parser.add_argument("outpath", nargs="?", metavar="FOLDER", type=str, help="Folder to hold output files")
+parser.add_argument("inpath", metavar="inpath", type=str, help="BLEPS Excel file")
+parser.add_argument("outpath", nargs="?", metavar="outpath", type=str, help="Folder to hold output files")
 
 parser.add_argument("-t", "-w", "--to", "--write",
 	metavar="FORMAT",
