@@ -127,8 +127,8 @@ def display_to_substitution(output, worksheet):
 substitution_functions = {
 	"FIFOs"        : (lambda f, s: write_basic(f, s, title="FIFO",     header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"0",\t"",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
 	"Faults"       : (lambda f, s: write_basic(f, s, title="Faults",   header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"0.5",\t"",\t"Present",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
-	"Trips"        : (lambda f, s: write_basic(f, s, title="Trips",    header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO FAULT",\t"TRIP",\t"NO ALARM",\t"MAJOR",\t"{desc}"}}\n')),
-	"Warnings"     : (lambda f, s: write_basic(f, s, title="Warnings", header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO FAULT",\t"TRIP",\t"NO ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Trips"        : (lambda f, s: write_basic(f, s, title="Trips",    header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO_FAULT",\t"TRIP",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Warnings"     : (lambda f, s: write_basic(f, s, title="Warnings", header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"NO_FAULT",\t"TRIP",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
 	"Info"         : None,
 	"Flows"        : (lambda f, s: write_basic(f, s, title="Flows",    header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1",\t"gpm",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
 	"Temps"        : (lambda f, s: write_basic(f, s, title="Temps",    header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1",\t"degC",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
