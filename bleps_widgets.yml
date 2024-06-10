@@ -271,7 +271,7 @@ FIFO_Template: !Template:FIFO
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 60x12
-                                        pv: "$(P):BLEPS:{type}_NUMBER_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_NUMBER_{N:02d}"
                                 
                             - !HFlow
                                 <<: *FIFO_Block
@@ -279,17 +279,17 @@ FIFO_Template: !Template:FIFO
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
-                                        pv: "$(P):BLEPS:{type}_HOUR_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_HOUR_{N:02d}"
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
-                                        pv: "$(P):BLEPS:{type}_MINUTE_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_MINUTE_{N:02d}"
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
-                                        pv: "$(P):BLEPS:{type}_SECOND_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_SECOND_{N:02d}"
                             
                             - !HFlow
                                 <<: *FIFO_Block
@@ -298,17 +298,17 @@ FIFO_Template: !Template:FIFO
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
-                                        pv: "$(P):BLEPS:{type}_MONTH_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_MONTH_{N:02d}"
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
-                                        pv: "$(P):BLEPS:{type}_DAY_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_DAY_{N:02d}"
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 25x12
-                                        pv: "$(P):BLEPS:{type}_YEAR_{N:02d}"
+                                        pv: "$(P)BLEPS:{type}_YEAR_{N:02d}"
 
         
                                         
