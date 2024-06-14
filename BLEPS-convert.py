@@ -102,7 +102,7 @@ def EPICS_to_substitution(output, worksheet):
 		
 
 def display_to_substitution(output, worksheet):
-	output.write("# BLEPS Display (Bools)")
+	output.write("# BLEPS Display (Bools)\n")
 	bi_header(output)
 			
 	for index in range(worksheet.nrows):
@@ -112,7 +112,7 @@ def display_to_substitution(output, worksheet):
 			output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=info["pv"], tag=info["tag"], desc=info["desc"]))
 				
 	output.write("}\n\n\n")
-	output.write("BLEPS Display (Ints)")
+	output.write("BLEPS Display (Ints)\n")
 	ai_header(output)
 	
 	for index in range(worksheet.nrows):
