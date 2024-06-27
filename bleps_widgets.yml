@@ -6,11 +6,9 @@ FIFO_Block: &FIFO_Block
     border-color: "{palette-secondary}"
     border-width: 1
     margins: 15x2x15x2
-    padding: 7
 
 FIFO_Text: &FIFO_Text
     foreground: "{palette-main}"
-    alignment: Center
     font: -Monospace -Regular -7
 
 Close_Button: &Close_Button
@@ -91,9 +89,12 @@ Units_Template: !Template:FeedbackWithUnits
         padding: 10
         children:
             - !TextMonitor
+                background: *grey_darker
+                foreground: *alarm_green
                 geometry: 55x14
                 font: "-Monospace -Regular -{fontsize}"
                 pv: "{pv}"
+                alignment: Right
                 
             - !Text
                 geometry: 70x14
@@ -184,11 +185,11 @@ Valve_Template: !Template:Valve
                         geometry: 50x12
                         children:
                             - !AStretch:Text
-                                foreground: *alarm_green
+                                foreground: *green
                                 alignment: Center
                                 text: "Open"
                                 font: -Liberation Sans -regular -9
-                                visibility: "$(P)BLEPS:GV{N}_OPEN_LS"
+                                visibility: "$(P)BLEPS:GV{N}_OPENED_LS"
                             
                             - !AStretch:Text
                                 foreground: *alarm_red
@@ -240,7 +241,7 @@ FIFO_Template: !Template:FIFO
     
         children:
             - !Group
-                geometry: "-10x2 x 0x0"
+                geometry: "-10x0 x 0x0"
                 children:
                     
                     - !Text
@@ -280,16 +281,29 @@ FIFO_Template: !Template:FIFO
                                         <<: *FIFO_Text
                                         geometry: 15x12
                                         pv: "$(P)BLEPS:{type}_HOUR_{N:02d}"
+                                        alignment: Right
+                                        
+                                    - !Text
+                                        geometry: 7x12
+                                        text: ":"
+                                        alignment: Center
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
                                         pv: "$(P)BLEPS:{type}_MINUTE_{N:02d}"
+                                        alignment: Center
+                                        
+                                    - !Text
+                                        geometry: 7x12
+                                        text: ":"
+                                        alignment: Center
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
                                         pv: "$(P)BLEPS:{type}_SECOND_{N:02d}"
+                                        alignment: Left
                             
                             - !HFlow
                                 <<: *FIFO_Block
@@ -299,16 +313,29 @@ FIFO_Template: !Template:FIFO
                                         <<: *FIFO_Text
                                         geometry: 15x12
                                         pv: "$(P)BLEPS:{type}_MONTH_{N:02d}"
+                                        alignment: Right
+                                        
+                                    - !Text
+                                        geometry: 7x12
+                                        text: "/"
+                                        alignment: Center
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 15x12
                                         pv: "$(P)BLEPS:{type}_DAY_{N:02d}"
+                                        alignment: Center
+                                        
+                                    - !Text
+                                        geometry: 7x12
+                                        text: "/"
+                                        alignment: Center
                                         
                                     - !TextMonitor
                                         <<: *FIFO_Text
                                         geometry: 25x12
                                         pv: "$(P)BLEPS:{type}_YEAR_{N:02d}"
+                                        alignment: Left
 
         
                                         
