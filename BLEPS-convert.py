@@ -112,7 +112,7 @@ def display_to_substitution(output, worksheet):
 			output.write('{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n'.format(name=info["pv"], tag=info["tag"], desc=info["desc"]))
 				
 	output.write("}\n\n\n")
-	output.write("BLEPS Display (Ints)\n")
+	output.write("# BLEPS Display (Ints)\n")
 	ai_header(output)
 	
 	for index in range(worksheet.nrows):
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_temps.yml".format(format=args.out_format, yaml=json.dumps(Temp_yaml), path=args.outpath + "/bleps_temps"), shell=True)
 		
 		print("Generating Flows Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_flows.yml".format(format=args.out_format, yaml=json.dumps(Flow_yaml), path=args.outpath + "/bleps_temps"), shell=True)
+		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_flows.yml".format(format=args.out_format, yaml=json.dumps(Flow_yaml), path=args.outpath + "/bleps_flows"), shell=True)
 		
 		print("Generating FIFO Screen")
 		subprocess.call("gestalt.py --to {format} --from str --input '{{}}' --output {path}.{format} bleps_fifo.yml".format(format=args.out_format, path=args.outpath + "/bleps_fifo"), shell=True)
