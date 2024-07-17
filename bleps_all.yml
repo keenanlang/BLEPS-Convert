@@ -35,7 +35,7 @@ Content: !Template:Everything
                             children:
                                 - !Apply:FIFO { label: "Trip",    type: "TRIP",    has-reset: True }
                                 - !Apply:FIFO { label: "Fault",   type: "FAULT",   has-reset: True }
-                                - !Apply:FIFO { label: "Warning", type: "WARNING", has-reset: False }
+                                - !Apply:FIFO { label: "Warning", type: "WARN", has-reset: False }
                                 
             - !VFlow
                 padding: 10
