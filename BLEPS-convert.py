@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /APSshare/anaconda3/x86_64/bin/python3
 
 import os
 import json
@@ -231,22 +231,22 @@ if __name__ == "__main__":
 		
 		
 		print("Generating Shutters Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} shutters.yml".format(format=args.out_format, yaml=json.dumps(shutter_yaml), path=args.outpath + "/shutters"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{yaml}' --output {path}.{format} shutters.yml".format(format=args.out_format, yaml=json.dumps(shutter_yaml), path=args.outpath + "/shutters"), shell=True)
 
 		print("Generating Gate Valve Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_valves.yml".format(format=args.out_format, yaml=json.dumps(GV_yaml), path=args.outpath + "/bleps_valves"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_valves.yml".format(format=args.out_format, yaml=json.dumps(GV_yaml), path=args.outpath + "/bleps_valves"), shell=True)
 		
 		print("Generating Temps Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_temps.yml".format(format=args.out_format, yaml=json.dumps(Temp_yaml), path=args.outpath + "/bleps_temps"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_temps.yml".format(format=args.out_format, yaml=json.dumps(Temp_yaml), path=args.outpath + "/bleps_temps"), shell=True)
 		
 		print("Generating Flows Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_flows.yml".format(format=args.out_format, yaml=json.dumps(Flow_yaml), path=args.outpath + "/bleps_flows"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_flows.yml".format(format=args.out_format, yaml=json.dumps(Flow_yaml), path=args.outpath + "/bleps_flows"), shell=True)
 		
 		print("Generating FIFO Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{{}}' --output {path}.{format} bleps_fifo.yml".format(format=args.out_format, path=args.outpath + "/bleps_fifo"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{{}}' --output {path}.{format} bleps_fifo.yml".format(format=args.out_format, path=args.outpath + "/bleps_fifo"), shell=True)
 		
 		print("Generating Extras Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_extras.yml".format(format=args.out_format, yaml=json.dumps(Extras_yaml), path=args.outpath + "/bleps_extras"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_extras.yml".format(format=args.out_format, yaml=json.dumps(Extras_yaml), path=args.outpath + "/bleps_extras"), shell=True)
 		
 		print("Generating Everything Screen")
-		subprocess.call("gestalt.py --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_all.yml".format(format=args.out_format, yaml=json.dumps(All_yaml), path=args.outpath + "/bleps_all"), shell=True)
+		subprocess.call("/APSshare/bin/gestalt --to {format} --from str --input '{yaml}' --output {path}.{format} bleps_all.yml".format(format=args.out_format, yaml=json.dumps(All_yaml), path=args.outpath + "/bleps_all"), shell=True)
