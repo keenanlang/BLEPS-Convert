@@ -179,7 +179,7 @@ if __name__ == "__main__":
 					
 					shutter_yaml["shutters"].append({ "label" : label, "abbreviation" : abbr})
 					
-				if "GV" in info["name"]:
+				if "GV" in info["name"] and "Open" in info["name"]:
 					GV_yaml["num_GV"] += 1
 					
 		for index in range(data.sheet_by_name("Temps").nrows):
