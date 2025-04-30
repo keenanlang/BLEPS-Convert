@@ -132,7 +132,7 @@ substitution_functions = {
 	"Info"         : None,
 	"Flows"        : (lambda f, s: write_basic(f, s, title="Flows",    header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1",\t"gpm",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
 	"Temps"        : (lambda f, s: write_basic(f, s, title="Temps",    header=ai_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"1",\t"degC",\t"",\t"",\t""\t"",\t"",\t"",\t""\t"",\t"{desc}"}}\n')),
-	"Inputs"       : (lambda f, s: write_basic(f, s, title="Inputs",   header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
+	"Inputs"       : (lambda f, s: write_basic(f, s, title="Inputs",   header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"BAD",\t"GOOD",\t"MAJOR",\t"NO_ALARM",\t"{desc}"}}\n')),
 	"Outputs"      : (lambda f, s: write_basic(f, s, title="Outputs",  header=bi_header, format='{{"BLEPS:{name}",\t"{tag}",\t"2.0",\t"GOOD",\t"BAD",\t"NO_ALARM",\t"MAJOR",\t"{desc}"}}\n')),
 	"Display"      : display_to_substitution,
 	"EPICS_Inputs" : EPICS_to_substitution,
@@ -161,16 +161,16 @@ if __name__ == "__main__":
 
 	elif args.out_format in ["qt", "ui", "css", "bob"]:
 		shutter_yaml = {"shutters" : [] }
-		GV_yaml   = {"num_GV"    : 0, "aspect" : 1.6}
+		GV_yaml   = {"GVs"    : [], "aspect" : 1.6}
 		Temp_yaml = {"num_Temps" : 0, "aspect" : 0.37}
-		Flow_yaml = {"num_Flows" : 0, "aspect" : 0.45}
+		Flow_yaml = {"Flows" : [], "aspect" : 0.45}
 		Extras_yaml = {"Gauges" : [], "Pumps" : [], "VS1" : [], "VS2" : []}
 		
 		for index in range(data.sheet_by_name("Outputs").nrows):
 			info = parse_row(data.sheet_by_name("Outputs").row(index))
 			
 			if info["used"] and info["used"] == "X":
-				if "Permit" in info["name"]:
+				if "Permit" in info["name"] and ".Permit" in info["tag"]:
 					abbr = info["name"][0:3]
 					
 					cutoff = max(info["desc"].rfind("Valve"), info["desc"].rfind("Shutter"))
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 					shutter_yaml["shutters"].append({ "label" : label, "abbreviation" : abbr})
 					
 				if "GV" in info["name"] and "Open" in info["name"]:
-					GV_yaml["num_GV"] += 1
+					GV_yaml["GVs"].append({"ID" : info["name"].removesuffix("_Open_Command")})
 					
 		for index in range(data.sheet_by_name("Temps").nrows):
 			info = parse_row(data.sheet_by_name("Temps").row(index))
@@ -194,7 +194,7 @@ if __name__ == "__main__":
 			
 			if info["used"] and info["used"] == "X":
 				if "Current" in info["name"]:
-					Flow_yaml["num_Flows"] += 1
+					Flow_yaml["Flows"].append({"ID" : info["name"].removeprefix("Flow").removesuffix("_Current")})
 					
 		for index in range(data.sheet_by_name("Inputs").nrows):
 			info = parse_row(data.sheet_by_name("Inputs").row(index))
@@ -221,9 +221,9 @@ if __name__ == "__main__":
 		
 		All_yaml = {}
 		All_yaml["shutters"] = shutter_yaml["shutters"]
-		All_yaml["num_GV"] = GV_yaml["num_GV"]
+		All_yaml["GVs"] = GV_yaml["GVs"]
 		All_yaml["num_Temps"] = Temp_yaml["num_Temps"]
-		All_yaml["num_Flows"] = Flow_yaml["num_Flows"]
+		All_yaml["Flows"] = Flow_yaml["Flows"]
 		All_yaml["Gauges"] = Extras_yaml["Gauges"]
 		All_yaml["Pumps"] = Extras_yaml["Pumps"]
 		All_yaml["VS1"] = Extras_yaml["VS1"]

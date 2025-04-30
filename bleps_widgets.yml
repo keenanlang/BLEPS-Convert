@@ -78,7 +78,25 @@ LED_Fault_Template: !Template:LEDFault
                 geometry: 24x0 x 100x14
                 font: "-{fontname} -Regular -{fontsize}"
                 text: "{label}"
-    
+
+LED_Inverse_Template: !Template:LEDInverse
+    - !Defaults
+        fontname: "Liberation Sans"
+        fontsize: 9
+        
+    - !Group
+        children:
+            - !LED
+                false-color: *alarm_red
+                true-color: *alarm_green
+                geometry: 14x14
+                pv: "{pv}"
+                
+            - !Text
+                geometry: 24x0 x 100x14
+                font: "-{fontname} -Regular -{fontsize}"
+                text: "{label}"
+
 
 Units_Template: !Template:FeedbackWithUnits
     - !Defaults
@@ -170,7 +188,7 @@ Valve_Template: !Template:Valve
             - !HStretch:TextEntry
                 <<: *H2
                 background: *white
-                pv: "$(P)BLEPS:GV{N}_TYPE.DESC"
+                pv: "$(P)BLEPS:{ID}_TYPE.DESC"
                 
             - !HCenter:HFlow
                 padding: 5
@@ -179,7 +197,7 @@ Valve_Template: !Template:Valve
                         geometry: 70x12
                         alignment: Center
                         font: -Liberation Sans -bold -9
-                        text: "GV {N}"
+                        text: "{ID}"
                     
                     - !Group
                         geometry: 50x12
@@ -189,49 +207,49 @@ Valve_Template: !Template:Valve
                                 alignment: Center
                                 text: "Open"
                                 font: -Liberation Sans -regular -9
-                                visibility: "$(P)BLEPS:GV{N}_OPENED_LS"
+                                visibility: "$(P)BLEPS:{ID}_OPENED_LS"
                             
                             - !AStretch:Text
                                 foreground: *alarm_red
                                 alignment: Center
                                 text: "Closed"
                                 font: -Liberation Sans -regular -9
-                                visibility: "$(P)BLEPS:GV{N}_CLOSED_LS"
+                                visibility: "$(P)BLEPS:{ID}_CLOSED_LS"
             
             - !HCenter:VFlow
                 geometry: 0x40 x 0x0
                 padding: 3
                 
                 children:
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_FAULTED",       label: "Fault" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_NO_SWITCH",     label: "No Switch" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_OPENED_SWITCH", label: "Opened Switch" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_CLOSED_SWITCH", label: "Closed Switch" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_BOTH_SWITCH",   label: "Both Switch" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_FAIL_TO_OPEN",  label: "Fail to Open" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_FULLY_OPEN",    label: "Fail to Fully Open" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_FAIL_TO_CLOSE", label: "Fail to Close" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_FULLY_CLOSE",   label: "Fail to Fully Close" }
-                    - !Apply:LEDFault { pv: "$(P)BLEPS:GV{N}_BEAM_EXPOSURE", label: "Beam Exposure" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_FAULTED",       label: "Fault" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_NO_SWITCH",     label: "No Switch" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_OPENED_SWITCH", label: "Opened Switch" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_CLOSED_SWITCH", label: "Closed Switch" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_BOTH_SWITCH",   label: "Both Switch" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_FAIL_TO_OPEN",  label: "Fail to Open" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_FULLY_OPEN",    label: "Fail to Fully Open" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_FAIL_TO_CLOSE", label: "Fail to Close" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_FULLY_CLOSE",   label: "Fail to Fully Close" }
+                    - !Apply:LEDFault { pv: "$(P)BLEPS:{ID}_BEAM_EXPOSURE", label: "Beam Exposure" }
                     
             - !HCenter:HFlow
                 children:
                     - !Group
-                        visibility: "$(P)BLEPS:GV{N}_CLOSE_PERMIT"
+                        visibility: "$(P)BLEPS:{ID}_CLOSE_PERMIT"
                         children:
                             - !MessageButton
                                 <<: *Close_Button
-                                pv: "$(P)BLEPS:GV{N}_EPICS_CLOSE"
+                                pv: "$(P)BLEPS:{ID}_EPICS_CLOSE"
                                 value: 1
                 
                     - !Spacer { geometry: 10x0 }
                                 
                     - !Group
-                        visibility: "$(P)BLEPS:GV{N}_OPEN_PERMIT"
+                        visibility: "$(P)BLEPS:{ID}_OPEN_PERMIT"
                         children:
                             - !MessageButton
                                 <<: *Open_Button
-                                pv: "$(P)BLEPS:GV{N}_EPICS_OPEN"
+                                pv: "$(P)BLEPS:{ID}_EPICS_OPEN"
                                 value: 1
     
     
@@ -411,7 +429,7 @@ GV_Region: !Template:GVRegion
                 geometry: 0x30 x 0x0
             
                 start-at: 1
-                repeat-over: "{num_GV}"
+                repeat-over: "{GVs}"
                 aspect-ratio: "{aspect}"
                 padding: 10
         
@@ -453,19 +471,20 @@ Flow_Region: !Template:FlowRegion
             - !Grid
                 geometry: 0x30x0x0
                 start-at: 1
-                repeat-over: "{num_Flows}"
+                repeat-over: "{Flows}"
                 aspect-ratio: "{aspect}"
                 padding: 10
                 
                 children:
                     - !Apply:BoxInfo
+                        N: "{ID}"
                         type: "Flow"
                         pv-type: "FLOW"
                         units: "gpm"
                         has-scaling: True
                         trip-text: "Low Flow"
-                        over-pv: "{N}_OVER_RANGE"
-                        under-pv: "_{N}_UNDER_WRN"
+                        over-pv: "{ID}_OVER_RANGE"
+                        under-pv: "_{ID}_UNDER_WRN"
                         
             - !Apply:BLEPS_Section_Header { label: "Flows" }
 
@@ -486,8 +505,8 @@ Pump_Region: !Template:PumpRegion
                     - !HFlow
                         padding: 10
                         children:
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IP{ID}_STATUS",  label: "Pump {ID} Status" }
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IP{ID}_WARNING", label: "Pump {ID} Warn" }
+                            - !Apply:LEDInverse { pv: "$(P)BLEPS:IP{ID}_STATUS",  label: "Pump {ID} Status" }
+                            - !Apply:LEDFault   { pv: "$(P)BLEPS:IP{ID}_WARNING", label: "Pump {ID} Warn" }
                     
             - !Apply:BLEPS_Section_Header { label: "Ion Pumps" }
             
@@ -508,8 +527,8 @@ Gauge_Region: !Template:GaugeRegion
                     - !HFlow
                         padding: 10
                         children:
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IG{ID}_STATUS",  label: "Gauge {ID} Status" }
-                            - !Apply:LEDFault { pv: "$(P)BLEPS:IG{ID}_WARNING", label: "Gauge {ID} Warn" }
+                            - !Apply:LEDInverse { pv: "$(P)BLEPS:IG{ID}_STATUS",  label: "Gauge {ID} Status" }
+                            - !Apply:LEDFault   { pv: "$(P)BLEPS:IG{ID}_WARNING", label: "Gauge {ID} Warn" }
                     
             - !Apply:BLEPS_Section_Header { label: "Ion Gauges" }
             
