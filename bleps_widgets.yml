@@ -24,20 +24,11 @@ Open_Button: &Open_Button
     foreground: *pure_white
     text: "Open"
     font: -Liberation Sans -Bold -11
-    
-
-H1: &H1
-    geometry: 120x20
-    foreground: *pure_white
-    background: "{palette-main}"
-    alignment: Center
-    font: -Liberation Sans -Regular -12
 
 H2: &H2
     geometry: 70x18
     alignment: Center
     font: -Liberation Mono -Bold -11
-
     
 Repeat_Item: &Repeat_Item
     geometry: 145x0
@@ -45,20 +36,33 @@ Repeat_Item: &Repeat_Item
     border-width: 2
     margins: 5x5x5x5
 
-BLEPS_Section: &BLEPS_Section
-    border-width: 3
-    border-color: "{palette-main}"
-    background: "{palette-background}"
-    margins: 10x0x10x10
-    
 
-BLEPS_Section_Header: !Template:BLEPS_Section_Header
-    - !HStretch:Group
-        geometry: "-10x0 x 0x0"
+BLEPS_Section: !Template:BLEPS_Section
+    - !Defaults
+        content: []
+        
+    - !Group
+        border-width: 3
+        border-color: "{palette-main}"
+        background: "{palette-background}"
+        margins: 10x0x10x10
+    
         children:
-            - !Text
-                <<: *H1
-                text: "{label}"
+            - !HStretch:Group
+                geometry: "-10x0 x 0x0"
+                children:
+                    - !Text
+                        geometry: 120x20
+                        foreground: *pure_white
+                        background: "{palette-main}"
+                        alignment: Center
+                        font: -Liberation Sans -Regular -12
+                        text: "{title}"
+                        
+            - !Group
+                geometry: 0x30 x 0x0
+                children:
+                    - !Embed:content
     
     
             
@@ -66,58 +70,28 @@ LED_Fault_Template: !Template:LEDFault
     - !Defaults
         fontname: "Liberation Sans"
         fontsize: 9
+        invert-logic: False 
         
     - !Group
         children:
-            - !LED
-                <<: *alarm_led
-                geometry: 14x14
-                pv: "{pv}"
+            - !If:invert-logic
+                - !LED
+                    false-color: *alarm_red
+                    true-color: *alarm_green
+                    geometry: 14x14
+                    pv: "{pv}"
+                    
+            - !IfNot:invert-logic
+                - !LED
+                    <<: *alarm_led
+                    geometry: 14x14
+                    pv: "{pv}"
                 
             - !Text
                 geometry: 24x0 x 100x14
                 font: "-{fontname} -Regular -{fontsize}"
                 text: "{label}"
 
-LED_Inverse_Template: !Template:LEDInverse
-    - !Defaults
-        fontname: "Liberation Sans"
-        fontsize: 9
-        
-    - !Group
-        children:
-            - !LED
-                false-color: *alarm_red
-                true-color: *alarm_green
-                geometry: 14x14
-                pv: "{pv}"
-                
-            - !Text
-                geometry: 24x0 x 100x14
-                font: "-{fontname} -Regular -{fontsize}"
-                text: "{label}"
-
-
-Units_Template: !Template:FeedbackWithUnits
-    - !Defaults
-        fontname: "Liberation Sans"
-        fontsize: 9
-        
-    - !HCenter:HFlow
-        padding: 10
-        children:
-            - !TextMonitor
-                background: *grey_darker
-                foreground: *alarm_green
-                geometry: 55x14
-                font: "-Monospace -Regular -{fontsize}"
-                pv: "{pv}"
-                alignment: Right
-                
-            - !Text
-                geometry: 70x14
-                font: "-{fontname} -Regular -{fontsize}"
-                text: "{unit}"
 
 Box_Template: !Template:BoxInfo
     - !VFlow
@@ -166,16 +140,11 @@ Box_Template: !Template:BoxInfo
                                 text: "{trip-text}"
                                 visibility: "$(P)BLEPS:{pv-type}{N}_TRIP"
                                     
-            - !Apply:FeedbackWithUnits { pv: "$(P)BLEPS:{pv-type}{N}_CURRENT",   unit: "{units}" }
-            - !Apply:FeedbackWithUnits { pv: "$(P)BLEPS:{pv-type}{N}_SET_POINT", unit: "SetPoint" }
+            - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_CURRENT",   unit-width: 70, unit: "{units}" }
+            - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_SET_POINT", unit-width: 70, unit: "SetPoint" }
                         
-            - !Conditional
-                condition: "has-scaling"
-            
-                children:
-                    - !Apply:FeedbackWithUnits
-                        pv: "$(P)BLEPS:{pv-type}{N}_SCALING"
-                        unit: "Scale Factor"                    
+            - !If:has-scaling
+                - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_SCALING", unit-width: 70, unit: "Scale Factor" }
                         
 
 
@@ -253,31 +222,19 @@ Valve_Template: !Template:Valve
                                 value: 1
     
     
-FIFO_Template: !Template:FIFO
-    - !Group
-        <<: *BLEPS_Section
-    
-        children:
-            - !Group
-                geometry: "-10x0 x 0x0"
-                children:
-                    
-                    - !Text
-                        <<: *H1
-                        text: "{label} Stack"
-                        
-                    - !Conditional
-                        condition: "has-reset"
-                        children:
-                            - !MessageButton
-                                geometry: "200x5 x 80x20"
-                                foreground: *pure_white
-                                background: "{palette-secondary}"
-                                font: -Liberation Sans -Regular -11
-                                text: "Reset {label}s"
+FIFO_Template: !Template:FIFO   
+    - !Apply:BLEPS_Section
+        title: "{label} Stack"
+        content:
+            - !If:has-reset
+                - !MessageButton
+                        geometry: "190x-25 x 80x20"
+                        foreground: *pure_white
+                        background: "{palette-secondary}"
+                        font: -Liberation Sans -Regular -11
+                        text: "Reset {label}s"
                 
             - !VRepeat
-                geometry: 0x30 x 0x0
                 repeat-over: 10
                 start-at: 1
                 
@@ -295,65 +252,21 @@ FIFO_Template: !Template:FIFO
                             - !HFlow
                                 <<: *FIFO_Block
                                 children:
-                                    - !TextMonitor
-                                        <<: *FIFO_Text
-                                        geometry: 15x12
-                                        pv: "$(P)BLEPS:{type}_HOUR_{N:02d}"
-                                        alignment: Right
-                                        
-                                    - !Text
-                                        geometry: 7x12
-                                        text: ":"
-                                        alignment: Center
-                                        
-                                    - !TextMonitor
-                                        <<: *FIFO_Text
-                                        geometry: 15x12
-                                        pv: "$(P)BLEPS:{type}_MINUTE_{N:02d}"
-                                        alignment: Center
-                                        
-                                    - !Text
-                                        geometry: 7x12
-                                        text: ":"
-                                        alignment: Center
-                                        
-                                    - !TextMonitor
-                                        <<: *FIFO_Text
-                                        geometry: 15x12
-                                        pv: "$(P)BLEPS:{type}_SECOND_{N:02d}"
-                                        alignment: Left
+                                    - !TextMonitor { <<: *FIFO_Text, geometry: 15x12, pv: "$(P)BLEPS:{type}_HOUR_{N:02d}",   alignment: Right }
+                                    - !Text        { geometry: 7x12, text: ":", alignment: Center }
+                                    - !TextMonitor { <<: *FIFO_Text, geometry: 15x12, pv: "$(P)BLEPS:{type}_MINUTE_{N:02d}", alignment: Center }
+                                    - !Text        { geometry: 7x12, text: ":", alignment: Center }
+                                    - !TextMonitor { <<: *FIFO_Text, geometry: 15x12, pv: "$(P)BLEPS:{type}_SECOND_{N:02d}", alignment: Left }
                             
                             - !HFlow
                                 <<: *FIFO_Block
                                 margins: 10x2x10x2
                                 children:
-                                    - !TextMonitor
-                                        <<: *FIFO_Text
-                                        geometry: 15x12
-                                        pv: "$(P)BLEPS:{type}_MONTH_{N:02d}"
-                                        alignment: Right
-                                        
-                                    - !Text
-                                        geometry: 7x12
-                                        text: "/"
-                                        alignment: Center
-                                        
-                                    - !TextMonitor
-                                        <<: *FIFO_Text
-                                        geometry: 15x12
-                                        pv: "$(P)BLEPS:{type}_DAY_{N:02d}"
-                                        alignment: Center
-                                        
-                                    - !Text
-                                        geometry: 7x12
-                                        text: "/"
-                                        alignment: Center
-                                        
-                                    - !TextMonitor
-                                        <<: *FIFO_Text
-                                        geometry: 25x12
-                                        pv: "$(P)BLEPS:{type}_YEAR_{N:02d}"
-                                        alignment: Left
+                                    - !TextMonitor { <<: *FIFO_Text, geometry: 15x12, pv: "$(P)BLEPS:{type}_MONTH_{N:02d}", alignment: Right }
+                                    - !Text        { geometry: 7x12, text: "/", alignment: Center }
+                                    - !TextMonitor { <<: *FIFO_Text, geometry: 15x12, pv: "$(P)BLEPS:{type}_DAY_{N:02d}",   alignment: Center }
+                                    - !Text        { geometry: 7x12, text: "/", alignment: Center }
+                                    - !TextMonitor { <<: *FIFO_Text, geometry: 25x12, pv: "$(P)BLEPS:{type}_YEAR_{N:02d}",  alignment: Left }
 
         
                                         
@@ -361,7 +274,6 @@ Shutter_Template: !Template:Shutter
     - !VFlow
         <<: *Repeat_Item
         padding: 8
-        
         
         children:
             - !HStretch:Text
@@ -399,35 +311,22 @@ Shutter_Template: !Template:Shutter
                 visibility: "$(P)BLEPS:{abbreviation}_PERMIT"
                 
                 children:
-                    - !MessageButton
-                        <<: *Close_Button
-                        
-                    - !MessageButton
-                        <<: *Open_Button
+                    - !MessageButton { <<: *Close_Button }
+                    - !MessageButton { <<: *Open_Button  }
                         
                 
 Shutter_Region: !Template:ShutterRegion
-    - !Group
-        <<: *BLEPS_Section
-    
-        children:
-            - !HRepeat
-                geometry: "0x30 x 0x0"
-                repeat-over: "shutters"
-                padding: 10
-                
-                children:
-                    - !Apply:Shutter
-                
-            - !Apply:BLEPS_Section_Header { label: "Shutters" }
+    - !Apply:BLEPS_Section
+        title: "Shutters"
+        content:
+            - !HRepeat    { repeat-over: "shutters", padding: 10, children: [ !Apply:Shutter ] }
                         
+                    
 GV_Region: !Template:GVRegion
-    - !Group
-        <<: *BLEPS_Section
-        children:
+    - !Apply:BLEPS_Section
+        title: "Gate Valves"
+        content:
             - !Grid
-                geometry: 0x30 x 0x0
-            
                 start-at: 1
                 repeat-over: "{GVs}"
                 aspect-ratio: "{aspect}"
@@ -435,17 +334,13 @@ GV_Region: !Template:GVRegion
         
                 children:
                     - !Apply:Valve
-                    
-            - !Apply:BLEPS_Section_Header { label: "Gate Valves" }
             
             
 Temp_Region: !Template:TempRegion
-    - !Group
-        <<: *BLEPS_Section
-        
-        children:
+    - !Apply:BLEPS_Section
+        title: "Temps"
+        content:
             - !Grid
-                geometry: 0x30x0x0
                 start-at: 1
                 repeat-over: "{num_Temps}"
                 aspect-ratio: "{aspect}"
@@ -460,16 +355,13 @@ Temp_Region: !Template:TempRegion
                         trip-text: "High Temp"
                         over-pv: "_{N}_OVER_WRN"
                         under-pv: "{N}_UNDER_RANGE"
-                        
-            - !Apply:BLEPS_Section_Header { label: "Temps" }
             
 
 Flow_Region: !Template:FlowRegion
-    - !Group
-        <<: *BLEPS_Section
-        children:                    
+    - !Apply:BLEPS_Section
+        title: "Flows"
+        content:
             - !Grid
-                geometry: 0x30x0x0
                 start-at: 1
                 repeat-over: "{Flows}"
                 aspect-ratio: "{aspect}"
@@ -485,19 +377,13 @@ Flow_Region: !Template:FlowRegion
                         trip-text: "Low Flow"
                         over-pv: "{ID}_OVER_RANGE"
                         under-pv: "_{ID}_UNDER_WRN"
-                        
-            - !Apply:BLEPS_Section_Header { label: "Flows" }
 
             
 Pump_Region: !Template:PumpRegion
-    - !Group
-        <<: *BLEPS_Section
-        geometry: 290 x 0
-        
-                
-        children:
+    - !Apply:BLEPS_Section
+        title: "Ion Pumps"
+        content:
             - !HCenter:VRepeat
-                geometry: 0x30 x 0x0
                 repeat-over: "Pumps"
                 padding: 3
                 
@@ -505,21 +391,15 @@ Pump_Region: !Template:PumpRegion
                     - !HFlow
                         padding: 10
                         children:
-                            - !Apply:LEDInverse { pv: "$(P)BLEPS:IP{ID}_STATUS",  label: "Pump {ID} Status" }
+                            - !Apply:LEDFault   { pv: "$(P)BLEPS:IP{ID}_STATUS",  label: "Pump {ID} Status", invert-logic: True }
                             - !Apply:LEDFault   { pv: "$(P)BLEPS:IP{ID}_WARNING", label: "Pump {ID} Warn" }
-                    
-            - !Apply:BLEPS_Section_Header { label: "Ion Pumps" }
             
             
 Gauge_Region: !Template:GaugeRegion
-    - !Group
-        <<: *BLEPS_Section
-        geometry: 290 x 0
-        
-                
-        children:
+    - !Apply:BLEPS_Section
+        title: "Ion Gauges"
+        content:
             - !HCenter:VRepeat
-                geometry: 0x30 x 0x0
                 repeat-over: "Gauges"
                 padding: 3
                 
@@ -527,20 +407,15 @@ Gauge_Region: !Template:GaugeRegion
                     - !HFlow
                         padding: 10
                         children:
-                            - !Apply:LEDInverse { pv: "$(P)BLEPS:IG{ID}_STATUS",  label: "Gauge {ID} Status" }
-                            - !Apply:LEDFault   { pv: "$(P)BLEPS:IG{ID}_WARNING", label: "Gauge {ID} Warn" }
-                    
-            - !Apply:BLEPS_Section_Header { label: "Ion Gauges" }
+                            - !Apply:LEDFault  { pv: "$(P)BLEPS:IG{ID}_STATUS",  label: "Gauge {ID} Status", invert-logic: True }
+                            - !Apply:LEDFault  { pv: "$(P)BLEPS:IG{ID}_WARNING", label: "Gauge {ID} Warn" }
             
             
-Vacuum_Region: !Template:VacuumRegion        
-    - !Group
-        <<: *BLEPS_Section
-        geometry: 290 x 0
-        
-        children:
+Vacuum_Region: !Template:VacuumRegion 
+    - !Apply:BLEPS_Section
+        title: "Vac. Sections"
+        content:
             - !HCenter:HFlow
-                geometry: 0x30 x 0x0
                 padding: 10
                 
                 children:
@@ -557,5 +432,3 @@ Vacuum_Region: !Template:VacuumRegion
                         
                         children:
                             - !Apply:LEDFault { pv: "$(P)BLEPS:VS{ID}_TRIP", label: "Section {ID} Trip"}
-                    
-            - !Apply:BLEPS_Section_Header { label: "Vac. Sections" }
