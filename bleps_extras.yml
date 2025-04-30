@@ -2,7 +2,7 @@
 #include bleps_widgets.yml
 
 Form: !Form
-    title: "Beamline FIFO"
+    title: "Beamline Extra"
     background: $757687
     
     
