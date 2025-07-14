@@ -140,11 +140,11 @@ Box_Template: !Template:BoxInfo
                                 text: "{trip-text}"
                                 visibility: "$(P)BLEPS:{pv-type}{N}_TRIP"
                                     
-            - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_CURRENT",   unit-width: 70, unit: "{units}" }
-            - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_SET_POINT", unit-width: 70, unit: "SetPoint" }
+            - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_CURRENT",   unit-width: 70, units: "{units}" }
+            - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_SET_POINT", unit-width: 70, units: "SetPoint" }
                         
             - !If:has-scaling
-                - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_SCALING", unit-width: 70, unit: "Scale Factor" }
+                - !Apply:PVReadWrite { height: 14, spacing: 10, read-width: 55, read-pv: "$(P)BLEPS:{pv-type}{N}_SCALING", unit-width: 70, units: "Scale Factor" }
                         
 
 
